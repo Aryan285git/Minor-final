@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Data</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body class="dark-theme">
+    <div class="navbar">
+        <h1>Financial Data</h1>
+    </div>
+    <div class="data-container">
+        <div class="data-card" id="USD/INR">
+            <h2>USD/INR</h2>
+            <p>Loading...</p>
+        </div>
+
+        <div class="data-card" id="NIFTY">
+            <h2>NIFTY</h2>
+            <p>Loading...</p>
+        </div>
+
+        <div class="data-card" id="SENSEX">
+            <h2>SENSEX</h2>
+            <p>Loading...</p>
+        </div>
+    <div class="data-container">
+        <form action="/generate_plots" method="post">
+            <label for="input_date">Input Date:</label>
+            <input type="date" id="input_date" name="input_date" required>
+            <button type="submit">Generate Plots</button>
+        </form>
+
+        {% if nifty_plot %}
+            <h2>NIFTY Predictions</h2>
+            <img src="{{ nifty_plot }}" alt="NIFTY Plot">
+        {% endif %}
+
+        {% if sensex_plot %}
+            <h2>SENSEX Predictions</h2>
+            <img src="{{ sensex_plot }}" alt="SENSEX Plot">
+        {% endif %}
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Function to make API call and update card content
+            function updateCard(apiUrl, cardId) {
+                fetch(apiUrl)
+                    .then(response => response.json())
+                    .then(data => {
+                        const card = document.getElementById(cardId);
+                        if (data && data.value !== undefined) {
+                            card.innerHTML = `<h2>${cardId.toUpperCase()}</h2><p>${data.value}</p>`;
+                        } else {
+                            card.innerHTML = `<h2>${cardId.toUpperCase()}</h2><p>Data not available</p>`;
+                        }
+                    })
+                    .catch(error => {
+                        console.error(`Error fetching data from ${apiUrl}: ${error}`);
+                        const card = document.getElementById(cardId);
+                        card.innerHTML = `<h2>${cardId.toUpperCase()}</h2><p>Error fetching data</p>`;
+                    });
+            }
+
+            // API URLs
+            const apiKey = '2ZI2BPINNZP78HWN';
+            const usdInrApi = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=USD/INR&apikey=${apiKey}`;
+            const niftyApi = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=NSE:NIFTY&apikey=${apiKey}`;
+            const sensexApi = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=BSE/SENSEX&apikey=${apiKey}`;
+
+            // Update card content on page load
+            updateCard(usdInrApi, 'USD/INR');
+            updateCard(niftyApi, 'NIFTY');
+            updateCard(sensexApi, 'SENSEX');
+
+            // Update card content every 60 seconds (adjust as needed)
+            setInterval(() => {
+                updateCard(usdInrApi, 'USD/INR');
+                updateCard(niftyApi, 'NIFTY');
+                updateCard(sensexApi, 'SENSEX');
+            }, 60000);
+        });
+    </script>
+</body>
+</html>
