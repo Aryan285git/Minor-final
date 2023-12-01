@@ -1,7 +1,6 @@
 from flask import Flask, render_template, request,jsonify
 import pandas as pd
 from statsmodels.tsa.arima.model import ARIMA
-import matplotlib.pyplot as plt
 from sklearn.metrics import mean_absolute_error
 import matplotlib.pyplot as plt
 import itertools
@@ -9,8 +8,16 @@ from io import BytesIO
 import base64
 from nsepy import get_history
 from datetime import datetime, timedelta
+import yfinance as yf
 
 app = Flask(__name__)
+
+def get_latest_values():
+    usd_inr = yf.Ticker('USDINR=X').history(period='1d')['Close'].iloc[-1]
+    nifty = yf.Ticker('^NSEI').history(period='1d')['Close'].iloc[-1]
+    sensex = yf.Ticker('^BSESN').history(period='1d')['Close'].iloc[-1]
+
+    return usd_inr, nifty, sensex
 
 # Your existing code for loading and preprocessing data here...
 p_values = range(5)
@@ -49,7 +56,10 @@ test_data = nifty_inr.iloc[:train_size]
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    # Getting the latest values
+    usd_inr, nifty, sensex = get_latest_values()
+
+    return render_template('index.html', usd_inr=usd_inr, nifty=nifty, sensex=sensex)
 
 @app.route('/generate_plots', methods=['POST'])
 def generate_plots():
