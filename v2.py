@@ -3,6 +3,7 @@ from statsmodels.tsa.arima.model import ARIMA
 from sklearn.metrics import mean_absolute_error
 import matplotlib.pyplot as plt
 import itertools
+from sklearn.linear_model import LinearRegression
 
 # Define the range of p, d, q values to search
 p_values = range(5)
@@ -197,7 +198,7 @@ plt.legend()
 plt.xticks(rotation=45)
 plt.tight_layout()
 plt.show()
-"""
+
 
 #, exog=exog_sensex.loc[future_dates]
 
@@ -220,3 +221,106 @@ plt.legend()
 plt.xticks(rotation=45)
 plt.tight_layout()
 plt.show()
+
+
+"""
+
+"""
+
+
+
+
+
+
+
+c= nifty_inr.Close
+print(c.shape)
+close_series=c[::-1]
+print(close_series)
+# Define and fit an ARIMA model on the 'Close' series
+# You need to specify appropriate values for p, d, and q (ARIMA parameters)
+arima_model = ARIMA(close_series, order=(0, 0, 3))
+fitted_model = arima_model.fit()
+
+# After fitting your ARIMA model, forecast future values
+n_steps = 100  # Number of future steps to forecast
+forecast = fitted_model.forecast(steps=n_steps)
+
+# Print the forecasted values
+print(forecast)
+
+
+
+"""
+
+
+
+
+
+# Assuming you have the last known values of exogenous variables for NIFTY and Sensex
+last_known_values_nifty = nifty_inr.tail(1)[['Open', 'High', 'Low', 'Close','Open_N', 'High_N', 'Low_N']]
+last_known_values_sensex = sensex_inr.tail(1)[['Open', 'High', 'Low', 'Close','Open_S', 'High_S','Low_S']]
+
+# Repeat the last known values for the next 100 days for forecasting
+additional_exog_data_for_forecast_nifty = pd.concat([last_known_values_nifty] * 100)
+additional_exog_data_for_forecast_sensex = pd.concat([last_known_values_sensex] * 100)
+
+# Extend predictions for NIFTY
+# ... (Your previous code remains unchanged)
+
+# Combine original and forecast exogenous data for NIFTY
+extended_exog_nifty = pd.concat([test_exog, additional_exog_data_for_forecast_nifty])
+
+# Forecast an additional 100 days for NIFTY
+forecast_nifty_extended = results_extended_nifty.get_forecast(steps=100, exog=extended_exog_nifty)
+predicted_values_nifty_extended = forecast_nifty_extended.predicted_mean
+
+# Extend predictions for Sensex
+# ... (Your previous code remains unchanged)
+
+# Combine original and forecast exogenous data for Sensex
+extended_exog_sensex = pd.concat([test_exog_sensex, additional_exog_data_for_forecast_sensex])
+
+# Forecast an additional 100 days for Sensex
+forecast_sensex_extended = results_extended_sensex.get_forecast(steps=100, exog=extended_exog_sensex)
+predicted_values_sensex_extended = forecast_sensex_extended.predicted_mean
+
+
+
+
+"""
+
+
+
+# Extend predictions for NIFTY
+extended_train_data = nifty_inr  # Include the entire dataset
+
+# Separate endogenous and exogenous variables for the extended training set
+extended_train_endog = extended_train_data[['Close_N']]
+extended_train_exog = extended_train_data[['Open', 'High', 'Low', 'Close','Open_N', 'High_N', 'Low_N']]
+
+# Rebuild the ARIMA model using the extended training data
+endog_column_extended = extended_train_endog.iloc[:, 0]
+model_extended_nifty = ARIMA(endog_column_extended, exog=extended_train_exog, order=(0, 0, 4))
+results_extended_nifty = model_extended_nifty.fit()
+
+# Forecast an additional 100 days
+forecast_nifty_extended = results_extended_nifty.get_forecast(steps=100, exog=)
+predicted_values_nifty_extended = forecast_nifty_extended.predicted_mean
+
+# Extend predictions for Sensex
+extended_train_data_sensex = sensex_inr  # Include the entire dataset
+
+# Separate endogenous and exogenous variables for the extended training set for Sensex
+extended_train_endog_sensex = extended_train_data_sensex[['Close_S']]
+extended_train_exog_sensex = extended_train_data_sensex[['Open', 'High', 'Low', 'Close','Open_S', 'High_S','Low_S']]
+
+# Rebuild the ARIMA model using the extended training data for Sensex
+endog_column_extended_sensex = extended_train_endog_sensex.iloc[:, 0]
+model_extended_sensex = ARIMA(endog_column_extended_sensex, exog=extended_train_exog_sensex, order=(0, 0, 3))
+results_extended_sensex = model_extended_sensex.fit()
+
+# Forecast an additional 100 days for Sensex
+forecast_sensex_extended = results_extended_sensex.get_forecast(steps=100, exog=test_exog_sensex)
+predicted_values_sensex_extended = forecast_sensex_extended.predicted_mean
+"""
